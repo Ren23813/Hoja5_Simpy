@@ -1,14 +1,16 @@
 import random
 import simpy
+import statistics as stats
 RandomSeed = 77
 env = simpy.Environment()
 
 random.seed(RandomSeed)
-QTY_Procesos = 5   #Sujeto a cambios durante cada intento
+QTY_Procesos = 25   #Sujeto a cambios durante cada intento
 RawInterval = 10    #Sujeto a cambos durante cada intento
 #RAM = simpy.Container(env, init=7,capacity=7)
 RAM = simpy.Container(env, init=100,capacity=100)
 CPU = simpy.Resource(env,capacity=1)    #Sujeto a cambios durante cada intento
+duracionTotal = []
 
 def source(env,qty,counter,ram):
     
@@ -24,6 +26,7 @@ def source(env,qty,counter,ram):
 
 
 def execute(env,ID,counter,ram,needed_ram,instructions,asignado):
+    duracion = 0
     arrive = env.now
     print('%7.4f %s: Nuevo proceso' %(arrive,ID))
     print("Instrucciones: ", instructions, "RAM: ", needed_ram)
@@ -32,9 +35,9 @@ def execute(env,ID,counter,ram,needed_ram,instructions,asignado):
         print("RAM DISPONIBLE:", ram.level)
         if ram.level < needed_ram:
             print('%7.4f %s: Esperando RAM...' % (env.now, ID))
-            yield ram.get(needed_ram)  # Esperamos hasta que haya suficiente RAM disponible
+            yield ram.get(needed_ram)  # Esperar llegada de ram. 
             print('%7.4f %s: Obtenida RAM' % (env.now, ID))
-            asignado[ID] = True  # Marcar el proceso como asignado
+            asignado[ID] = True  
         else:
             ram.get(needed_ram)
             print('%7.4f %s: Obtenida RAM' % (env.now, ID))
@@ -66,15 +69,20 @@ def execute(env,ID,counter,ram,needed_ram,instructions,asignado):
                     print("CPU Realizó 1 instrucción con", ID)
                 if instructions == 0:
                     print('%7.4f %s: Terminó el proceso' % (env.now, ID))
-                    ram.put(needed_ram)  # Liberamos la RAM utilizada por el proceso
+                    ram.put(needed_ram)  
                     print(asignado)
+                    duracion = env.now-arrive
+                    print("Tiempo de vida del proceso: ", duracion)
+                    global duracionTotal
+                    duracionTotal.append(duracion)
 
 
 
 print("Analizador de procesos Simpy: \n")
 env.process(source(env,QTY_Procesos,CPU,RAM))
 env.run()
-
-
-                
+print("\n")
+print("Duración de todos los procesos: ",sum(duracionTotal))
+print("Media de todos los procesos: ", stats.mean(duracionTotal))
+print("Desviacion estándar de todos los procesos: ", stats.stdev(duracionTotal))
 
