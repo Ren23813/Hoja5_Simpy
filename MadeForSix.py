@@ -1,3 +1,4 @@
+#Con funcionalidad igual que el otro código. Únicamente creado para realizar las pruebas de 6 instrucciones. 
 import random
 import simpy
 import statistics as stats
@@ -8,8 +9,8 @@ random.seed(RandomSeed)
 QTY_Procesos = 200   #Sujeto a cambios durante cada intento
 RawInterval = 10    #Sujeto a cambos durante cada intento
 RAM = simpy.Container(env, init=100,capacity=100)
-CPU = simpy.Resource(env,capacity=2)    #Sujeto a cambios durante cada intento
-duracionTotal = []      #Array útil para la librería de cálculos matemáticos
+CPU = simpy.Resource(env,capacity=1)    
+duracionTotal = []      
 
 def source(env,qty,counter,ram):
     
@@ -46,10 +47,10 @@ def execute(env,ID,counter,ram,needed_ram,instructions,asignado):
             yield req
             print('%7.4f %s: desde que llegó a CPU han pasado %6.3f' % (env.now, ID, env.now - arrive))
             while instructions > 0:
-                if instructions >= 3:
-                    yield env.timeout(3)
-                    instructions -= 3
-                    print("CPU Realizó 3 instrucciones con", ID)
+                if instructions >= 6:   #Resto del código, modificado para 6:
+                    yield env.timeout(6)
+                    instructions -= 6
+                    print("CPU Realizó 6 instrucciones con", ID)
                     decide = random.randint(1,2)
                     if decide == 1:
                         tiempoIO = random.expovariate(1/random.randint(1,3))    #La guía no especificaba explícitamente cómo manejar la I/O, entonces consideré que un pequeño random era lo más ideal.
@@ -58,6 +59,19 @@ def execute(env,ID,counter,ram,needed_ram,instructions,asignado):
                     elif decide == 2:
                         print(ID,"regresó a ready at ", env.now)
 
+                elif instructions == 5:
+                    yield env.timeout(5)
+                    instructions -= 5
+                    print("CPU Realizó 5 instrucciones con", ID)
+                elif instructions == 4:
+                    yield env.timeout(4)
+                    instructions -= 4
+                    print("CPU Realizó 4 instrucciones con", ID)
+                elif instructions == 3:
+                    yield env.timeout(3)
+                    instructions -= 3
+                    print("CPU Realizó 3 instrucciones con", ID)
+            
                 elif instructions == 2:
                     yield env.timeout(2)
                     instructions -= 2
@@ -84,4 +98,3 @@ print("\n")
 print("Duración de todos los procesos: ",sum(duracionTotal))
 print("Media de todos los procesos: ", stats.mean(duracionTotal))
 print("Desviacion estándar de todos los procesos: ", stats.stdev(duracionTotal))
-
